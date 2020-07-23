@@ -61,11 +61,39 @@ const images = [
  * Draws a pose if it passes a minimum confidence onto a canvas.
  * Only the pose's keypoints that pass a minPartConfidence are drawn.
  */
+
+function distance(x,y){
+  return Math.sqrt(x*x + y*y)
+}
+
 function drawResults(canvas, poses, minPartConfidence, minPoseConfidence) {
   renderImageToCanvas(image, [513, 513], canvas);
   const ctx = canvas.getContext('2d');
+  //------------------New defined variables-------------------------
+  var height_horizontal =0 ; //Initialize height to zero 
+  var i ;
+  var pos;
+  var len_x,len_y;
+  var arm_span = [9,7,5,6,8,10]; //Calculate horizontal height of human
+  //-------------------------------------------------------------------
+  
   poses.forEach((pose) => {
     if (pose.score >= minPoseConfidence) {
+  
+    //-------------------calculate height -----------------------------------  
+      for (i=1;i<arm_span.length;i++){
+        
+        len_x = pose.keypoints[arm_span[i-1]].position.x - pose.keypoints[arm_span[i]].position.x;
+        len_y = pose.keypoints[arm_span[i-1]].position.y - pose.keypoints[arm_span[i]].position.y;
+        //console.log(len_x,len_y,distance(len_x,len_y))
+        
+        height_horizontal = height_horizontal + distance(len_x,len_y);
+      }
+      
+      console.log("height = ",height_horizontal);
+      height_horizontal =0 ; //reset height to 0 for next image
+  
+     //---------------------------------------------------------------------- 
       if (guiState.showKeypoints) {
         drawKeypoints(pose.keypoints, minPartConfidence, ctx);
       }
@@ -205,7 +233,7 @@ let guiState = {
   image: 'tennis_in_crowd.jpg',
   multiPoseDetection: {
     minPartConfidence: 0.1,
-    minPoseConfidence: 0.2,
+    minPoseConfidence: 0.8,
     nmsRadius: 20.0,
     maxDetections: 15,
   },

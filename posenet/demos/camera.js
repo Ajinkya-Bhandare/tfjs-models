@@ -423,8 +423,47 @@ function detectPoseInRealTime(video, net) {
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
+    //---------------newly defined varibles----------------------------
+    var thresh_score = 0.2 ; //Min confidence that a keypoint is present
+    var height_horizontal =0 ; //Initialize height to zero 
+    var i ;
+    var pos;
+    var complete_pose =true;
+    var len_x,len_y;
+    var arm_span = [9,7,5,6,8,10]; //Calculate horizontal height of human
+    //-----------------------------------------------------------------
+    function distance(x,y){
+        return Math.sqrt(x*x+y*y);
+      }
+    
     poses.forEach(({score, keypoints}) => {
+      
       if (score >= minPoseConfidence) {
+        for (i=0;i<keypoints.length;i++){
+      //----------------------------detect for complete body------------------------
+            if (keypoints[i].score<thresh_score){
+              console.log(false);
+              complete_pose =false;
+            }
+         }
+      //-------------------------------Calculate Height --------------------------------------
+        if (complete_pose){
+        
+        for (i=1;i<arm_span.length;i++){
+        len_x = keypoints[arm_span[i-1]].position.x - keypoints[arm_span[i]].position.x;
+        len_y = keypoints[arm_span[i-1]].position.y - keypoints[arm_span[i]].position.y;
+        height_horizontal = height_horizontal + distance(len_x,len_y);
+        //console.log(len_x,len_y,distance(len_x,len_y))
+      }
+      console.log("height = ",height_horizontal); //Return height in console.
+      height_horizontal =0 ; //reset height to 0 for next image
+      }
+      else{
+        alert("please take a step back so that we can see your entire pose");
+        console.log("please take a step back so that we can see your entire pose");
+      }
+      //-----------------------------------------------------------------------
+
         if (guiState.output.showPoints) {
           drawKeypoints(keypoints, minPartConfidence, ctx);
         }
